@@ -26,6 +26,8 @@ namespace Microsoft.Marketplace.Saas.Web
     using Microsoft.Marketplace.SaasKit.Client.DataAccess.Context;
     using Microsoft.Marketplace.SaasKit.Client.DataAccess.Contracts;
     using Microsoft.Marketplace.SaasKit.Client.DataAccess.Services;
+    using Azure.Security.KeyVault.Secrets;
+    using Azure.Core;
     using System;
 
     /// <summary>
@@ -69,27 +71,55 @@ namespace Microsoft.Marketplace.Saas.Web
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            SecretClientOptions options = new SecretClientOptions()
+            {
+                Retry =
+                {
+                    Delay = TimeSpan.FromSeconds(1),
+                    MaxDelay = TimeSpan.FromSeconds(16),
+                    MaxRetries = 5,
+                    Mode = RetryMode.Exponential,
+                }
+            };
+
+            //try
+            //{
+            //    var client = new SecretClient(new Uri("https://saastestvault.vault.azure.net/"), new DefaultAzureCredential(), options);
+            //} catch (Exception ex)
+            //{
+            //    Console.WriteLine("Secret access did not work.");
+            //    Console.WriteLine(ex.Message);
+            //}
+
+            var client = new SecretClient(new Uri("https://saastestvault.vault.azure.net/"), new DefaultAzureCredential(), options);
+
+            KeyVaultSecret clientId = client.GetSecret("clientid");
+            KeyVaultSecret tenantId = client.GetSecret("tenantid");
+            KeyVaultSecret saasAppUrl = client.GetSecret("saasappurl");
+            KeyVaultSecret defaultConnection = client.GetSecret("defaultconnection");
+
             var config = new SaaSApiClientConfiguration()
             {
                 AdAuthenticationEndPoint = this.Configuration["SaaSApiConfiguration:AdAuthenticationEndPoint"],
-                ClientId = this.Configuration["SaaSApiConfiguration:ClientId"],
+                ClientId = clientId.Value,
                 ClientSecret = this.Configuration["SaaSApiConfiguration:ClientSecret"],
                 FulFillmentAPIBaseURL = this.Configuration["SaaSApiConfiguration:FulFillmentAPIBaseURL"],
-                MTClientId = this.Configuration["SaaSApiConfiguration:MTClientId"],
+                MTClientId = clientId.Value,
                 FulFillmentAPIVersion = this.Configuration["SaaSApiConfiguration:FulFillmentAPIVersion"],
                 GrantType = this.Configuration["SaaSApiConfiguration:GrantType"],
                 Resource = this.Configuration["SaaSApiConfiguration:Resource"],
-                SaaSAppUrl = this.Configuration["SaaSApiConfiguration:SaaSAppUrl"],
+                SaaSAppUrl = saasAppUrl.Value,
                 SignedOutRedirectUri = this.Configuration["SaaSApiConfiguration:SignedOutRedirectUri"],
-                TenantId = this.Configuration["SaaSApiConfiguration:TenantId"],
+                TenantId = tenantId.Value,
                 SupportMeteredBilling = Convert.ToBoolean(this.Configuration["SaaSApiConfiguration:supportmeteredbilling"])
             };
+
             var knownUsers = new KnownUsersModel()
             {
                 KnownUsers = this.Configuration["KnownUsers"],
             };
-            var creds = new ClientSecretCredential(config.TenantId.ToString(), config.ClientId.ToString(), config.ClientSecret);
 
+            var creds = new ClientSecretCredential(config.TenantId.ToString(), config.ClientId.ToString(), config.ClientSecret);
 
             services
                 .AddAuthentication(options =>
@@ -120,7 +150,7 @@ namespace Microsoft.Marketplace.Saas.Web
                 .AddSingleton<KnownUsersModel>(knownUsers);
 
             services
-                .AddDbContext<SaasKitContext>(options => options.UseSqlServer(this.Configuration.GetConnectionString("DefaultConnection")));
+                .AddDbContext<SaasKitContext>(options => options.UseSqlServer(defaultConnection.Value));
 
 
             InitializeRepositoryServices(services);
@@ -156,6 +186,8 @@ namespace Microsoft.Marketplace.Saas.Web
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
+
+            //app.UseDeveloperExceptionPage();
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();

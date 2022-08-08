@@ -367,3 +367,5 @@ src/SaaS.SDK.PublisherSolution/appsettings.Development.json
 src/SaaS.SDK.MeteredTriggerJob/appsettings.Development.json
 src/SaaS.SDK.CustomerProvisioning/appsettings.Development.json
 
+/src/SaaS.SDK.PublisherSolution/Properties/ServiceDependencies/local/secrets1.arm.json
+/src/SaaS.SDK.CustomerProvisioning/Properties/ServiceDependencies/local/secrets1.arm.json
