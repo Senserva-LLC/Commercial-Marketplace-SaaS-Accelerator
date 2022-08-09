@@ -207,7 +207,7 @@ namespace Microsoft.Marketplace.Saas.Web.Controllers
             this.logger.LogInformation("Home Controller / Index ");
             try
             {
-                this.applicationConfigService.SaveFileToDisk("LogoFile", "contoso-sales.png");
+                this.applicationConfigService.SaveFileToDisk("LogoFile", "senserva-logo.png");
                 this.applicationConfigService.SaveFileToDisk("FaviconFile", "favicon.ico");
 
                 var userId = this.userService.AddUser(this.GetCurrentUserDetail());

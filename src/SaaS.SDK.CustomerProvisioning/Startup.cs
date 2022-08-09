@@ -26,6 +26,9 @@ namespace Microsoft.Marketplace.SaasKit.Client
     using Microsoft.Marketplace.SaaS;
     using Microsoft.AspNetCore.Authentication;
     using System.IdentityModel.Tokens.Jwt;
+    using Azure.Security.KeyVault.Secrets;
+    using Azure.Core;
+    using System;
 
     /// <summary>
     /// Defines the <see cref="Startup" />.
@@ -65,20 +68,39 @@ namespace Microsoft.Marketplace.SaasKit.Client
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            SecretClientOptions options = new SecretClientOptions()
+            {
+                Retry =
+                {
+                    Delay = TimeSpan.FromSeconds(1),
+                    MaxDelay = TimeSpan.FromSeconds(16),
+                    MaxRetries = 5,
+                    Mode = RetryMode.Exponential,
+                }
+            };
+
+            var client = new SecretClient(new Uri("https://saastestvault.vault.azure.net/"), new DefaultAzureCredential(), options);
+
+            KeyVaultSecret clientId = client.GetSecret("clientid");
+            KeyVaultSecret tenantId = client.GetSecret("tenantid");
+            KeyVaultSecret saasAppUrl = client.GetSecret("saasappurl");
+            KeyVaultSecret defaultConnection = client.GetSecret("defaultconnection");
+
             var config = new SaaSApiClientConfiguration()
             {
                 AdAuthenticationEndPoint = this.Configuration["SaaSApiConfiguration:AdAuthenticationEndPoint"],
-                ClientId = this.Configuration["SaaSApiConfiguration:ClientId"],
+                ClientId = clientId.Value,
                 ClientSecret = this.Configuration["SaaSApiConfiguration:ClientSecret"],
-                MTClientId = this.Configuration["SaaSApiConfiguration:MTClientId"],
+                MTClientId = clientId.Value,
                 FulFillmentAPIBaseURL = this.Configuration["SaaSApiConfiguration:FulFillmentAPIBaseURL"],
                 FulFillmentAPIVersion = this.Configuration["SaaSApiConfiguration:FulFillmentAPIVersion"],
                 GrantType = this.Configuration["SaaSApiConfiguration:GrantType"],
                 Resource = this.Configuration["SaaSApiConfiguration:Resource"],
-                SaaSAppUrl = this.Configuration["SaaSApiConfiguration:SaaSAppUrl"],
+                SaaSAppUrl = saasAppUrl.Value,
                 SignedOutRedirectUri = this.Configuration["SaaSApiConfiguration:SignedOutRedirectUri"],
-                TenantId = this.Configuration["SaaSApiConfiguration:TenantId"],
+                TenantId = tenantId.Value,
             };
+
             var creds = new ClientSecretCredential(config.TenantId.ToString(), config.ClientId.ToString(), config.ClientSecret);
 
             services
@@ -108,7 +130,7 @@ namespace Microsoft.Marketplace.SaasKit.Client
                 ;
 
             services
-                .AddDbContext<SaasKitContext>(options => options.UseSqlServer(this.Configuration.GetConnectionString("DefaultConnection")));
+                .AddDbContext<SaasKitContext>(options => options.UseSqlServer(defaultConnection.Value));
 
             InitializeRepositoryServices(services);
 
