@@ -81,7 +81,7 @@ namespace Microsoft.Marketplace.SaasKit.Client
 
             var client = new SecretClient(new Uri("https://saastestvault.vault.azure.net/"), new DefaultAzureCredential(), options);
 
-            KeyVaultSecret clientId = client.GetSecret("clientid");
+            KeyVaultSecret clientId = client.GetSecret("custclientid");
             KeyVaultSecret tenantId = client.GetSecret("tenantid");
             KeyVaultSecret saasAppUrl = client.GetSecret("saasappurl");
             KeyVaultSecret defaultConnection = client.GetSecret("defaultconnection");
