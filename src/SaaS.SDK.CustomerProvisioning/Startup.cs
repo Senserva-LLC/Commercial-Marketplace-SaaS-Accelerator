@@ -155,6 +155,11 @@ namespace Microsoft.Marketplace.SaasKit.Client
                 app.UseHsts();
             }
 
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers.Add("Content-Security-Policy", "default-src 'self';");
+                await next();
+            });
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
