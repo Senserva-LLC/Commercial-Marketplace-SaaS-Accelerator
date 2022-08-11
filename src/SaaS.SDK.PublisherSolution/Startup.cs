@@ -97,12 +97,13 @@ namespace Microsoft.Marketplace.Saas.Web
             KeyVaultSecret tenantId = client.GetSecret("tenantid");
             KeyVaultSecret saasAppUrl = client.GetSecret("saasappurl");
             KeyVaultSecret defaultConnection = client.GetSecret("defaultconnection");
+            KeyVaultSecret clientSecret = client.GetSecret("clientsecret");
 
             var config = new SaaSApiClientConfiguration()
             {
                 AdAuthenticationEndPoint = this.Configuration["SaaSApiConfiguration:AdAuthenticationEndPoint"],
                 ClientId = clientId.Value,
-                ClientSecret = this.Configuration["SaaSApiConfiguration:ClientSecret"],
+                ClientSecret = clientSecret.Value,
                 FulFillmentAPIBaseURL = this.Configuration["SaaSApiConfiguration:FulFillmentAPIBaseURL"],
                 MTClientId = clientId.Value,
                 FulFillmentAPIVersion = this.Configuration["SaaSApiConfiguration:FulFillmentAPIVersion"],
@@ -186,8 +187,6 @@ namespace Microsoft.Marketplace.Saas.Web
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
-
-            //app.UseDeveloperExceptionPage();
 
             app.Use(async (context, next) =>
             {
