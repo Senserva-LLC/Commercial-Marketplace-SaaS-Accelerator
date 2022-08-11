@@ -97,7 +97,7 @@ namespace Microsoft.Marketplace.Saas.Web
             KeyVaultSecret tenantId = client.GetSecret("tenantid");
             KeyVaultSecret saasAppUrl = client.GetSecret("saasappurl");
             KeyVaultSecret defaultConnection = client.GetSecret("defaultconnection");
-            KeyVaultSecret clientSecret = client.GetSecret("clientsecret");
+            KeyVaultSecret clientSecret = client.GetSecret("publisherclientsecret");
 
             var config = new SaaSApiClientConfiguration()
             {
