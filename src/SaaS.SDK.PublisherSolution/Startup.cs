@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See LICENSE file in the project root for license information.
 namespace Microsoft.Marketplace.Saas.Web
 {
+    using Azure.Core;
+    using Azure.Security.KeyVault.Secrets;
     using global::Azure.Identity;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.Cookies;
@@ -26,8 +28,6 @@ namespace Microsoft.Marketplace.Saas.Web
     using Microsoft.Marketplace.SaasKit.Client.DataAccess.Context;
     using Microsoft.Marketplace.SaasKit.Client.DataAccess.Contracts;
     using Microsoft.Marketplace.SaasKit.Client.DataAccess.Services;
-    using Azure.Security.KeyVault.Secrets;
-    using Azure.Core;
     using System;
 
     /// <summary>
@@ -76,13 +76,14 @@ namespace Microsoft.Marketplace.Saas.Web
                 Retry =
                 {
                     Delay = TimeSpan.FromSeconds(1),
-                    MaxDelay = TimeSpan.FromSeconds(16),
+                    MaxDelay = TimeSpan.FromSeconds(16), // from Microsoft guide TODO get link
                     MaxRetries = 5,
                     Mode = RetryMode.Exponential,
                 }
             };
 
-            //try
+            // TODO remove this afer talking to Kyle, he things its old learning code
+            //  try
             //{
             //    var client = new SecretClient(new Uri("https://saastestvault.vault.azure.net/"), new DefaultAzureCredential(), options);
             //} catch (Exception ex)
@@ -157,7 +158,8 @@ namespace Microsoft.Marketplace.Saas.Web
             InitializeRepositoryServices(services);
 
             services.AddDistributedMemoryCache();
-            services.AddSession(options => {
+            services.AddSession(options =>
+            {
                 options.IdleTimeout = TimeSpan.FromMinutes(5);
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
@@ -166,7 +168,8 @@ namespace Microsoft.Marketplace.Saas.Web
             services.AddMvc(option => option.EnableEndpointRouting = false);
             services.AddControllersWithViews();
 
-            services.Configure<CookieTempDataProviderOptions>(options => {
+            services.Configure<CookieTempDataProviderOptions>(options =>
+            {
                 options.Cookie.IsEssential = true;
             });
         }
